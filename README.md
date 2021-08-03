@@ -19,7 +19,8 @@ Actor Rotation은 돌지만 외형은 가만히 있는 것 처럼 보이게 됩�
 TurnDir과 Actor Rotation의 각도(Yaw)의 차이만큼 Skeletal Mesh의 Root Rotation을 반대로 돌리면 됩니다.
 
 ## 영상
-<iframe width="1264" height="711" src="https://www.youtube.com/embed/nY_vBttBVgw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+<iframe width="956" height="538" src="https://www.youtube.com/embed/ozv4q2ov3Mk" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## 진행상황
 360도 회전 구현 완료, 이동시 중심축 이동, 뒤집혀진 상태(등이 바닥을 향하는)에서 일어서기 구현
