@@ -9,5 +9,10 @@ Developed with Unreal Engine 4
 
 ## 구현방법
 <img src="ProneImage2.png" width="500">
-Actor Rotation을 돌린 만큼(Controller Rotation) Skeletal Mesh의 Root Rotation을 반대로 돌리면 
+
+기본 이론은 Actor Rotation을 돌린 만큼(Controller Rotation) Skeletal Mesh의 Root Rotation을 반대로 돌리면 
 Actor Rotation은 돌지만 외형은 가만히 있는 것 처럼 보이게 됩니다.
+
+<img src="ProneImage3.png" width="500">
+엎드리기 상태에 들어가기 시작할때 Actor Rotation을 구해서 TurnDir에 넣고 플레이어의 Controller Rotation에 따라 Actor Rotation이 움직이면
+TurnDir과 Actor Rotation의 각도(Yaw)의 차이만큼 Skeletal Mesh의 Root Rotation을 반대로 돌리면 됩니다.
