@@ -25,10 +25,10 @@ void UCharacter_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		if (IsProne) {
 			if (Player->GetVelocity().Size() > 3.0f)
 			{ // 움직일 때 하체가 따라가게
-				TrunDirEnd = Player->GetActorRotation();
+				TurnDirEnd = Player->GetActorRotation();
 				if (!(UpperProneYaw <= 110.0f && UpperProneYaw >= -110.0f))
 				{
-					TrunDirEnd = FRotator(TrunDirEnd.Pitch, TrunDirEnd.Yaw + 180.0f, TrunDirEnd.Roll);
+					TurnDirEnd = FRotator(TurnDirEnd.Pitch, TurnDirEnd.Yaw + 180.0f, TurnDirEnd.Roll);
 					IsProneBack = true;
 				}
 				else {
@@ -40,7 +40,7 @@ void UCharacter_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 				if (!IsTurn)
 				{
 					IsTurn = true;
-					TrunDirEnd = Player->GetActorRotation();
+					TurnDirEnd = Player->GetActorRotation();
 				}
 				if (!(UpperProneYaw <= 110.0f && UpperProneYaw >= -110.0f))
 				{
@@ -55,7 +55,7 @@ void UCharacter_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		else {
 			if (Player->GetVelocity().Size() > 3.0f)
 			{ // 움직일 때 하체가 따라가게
-				TrunDirEnd = Player->GetActorRotation();
+				TurnDirEnd = Player->GetActorRotation();
 				IsTurn = false;
 			}
 			else
@@ -63,22 +63,22 @@ void UCharacter_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 				if (!IsTurn)
 				{
 					IsTurn = true;
-					TrunDirEnd = Player->GetActorRotation();
+					TurnDirEnd = Player->GetActorRotation();
 				}
 				else if (UpperYaw >= 70.0f || UpperYaw <= -70.0f)
 				{
-					TrunDirEnd = Player->GetActorRotation();
+					TurnDirEnd = Player->GetActorRotation();
 				}
 			}
 		}
-		TrunDir = FMath::RInterpTo(TrunDir, TrunDirEnd, GetWorld()->GetDeltaSeconds(), 5.0f);
-		FRotator YawToAngle = (Player->GetActorRotation() - TrunDir).GetNormalized();
-		UpperYaw = FMath::ClampAngle(YawToAngle.Yaw, -90.0f, 90.0f);
+		TurnDir = FMath::RInterpTo(TurnDir, TurnDirEnd, GetWorld()->GetDeltaSeconds(), 5.0f);
+		FRotator YawToAngle = (Player->GetActorRotation() - TurnDir).GetNormalized();
 		UpperProneYaw = YawToAngle.Yaw;
+		UpperYaw = FMath::ClampAngle(YawToAngle.Yaw, -90.0f, 90.0f);
 		//UE_LOG(LogTemp, Warning, TEXT("UpperYaw: %f"), UpperYaw);
 		//UE_LOG(LogTemp, Warning, TEXT("UpperProneYaw: %f"), UpperProneYaw);
 
-		ProneRot = GetProneRotBlend(TrunDirEnd.Vector(), Player->GetActorRotation());
+		ProneRot = GetProneRotBlend(TurnDirEnd.Vector(), Player->GetActorRotation());
 	}
 	
 }
