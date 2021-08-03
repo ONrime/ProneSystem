@@ -24,3 +24,6 @@ TurnDir과 Actor Rotation의 각도(Yaw)의 차이만큼 Skeletal Mesh의 Root R
 
 ## 진행상황
 360도 회전 구현 완료, 이동시 중심축 이동, 뒤집혀진 상태(등이 바닥을 향하는)에서 일어서기 구현
+
+github-readme-stats.vercel.app/api?username={ONrime}&show_icons=true&theme=dark
+
