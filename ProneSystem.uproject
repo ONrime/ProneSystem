@@ -1,0 +1,16 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{482DEAFB-4211-FD9C-6612-3EB1EBC43BBB}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "ProneSystem",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		}
+	]
+}
