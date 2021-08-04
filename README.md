@@ -20,8 +20,6 @@ TurnDir과 Actor Rotation의 각도(Yaw)의 차이만큼 Skeletal Mesh의 Root R
 
 <img src="ProneImage4.png" width="200">
 <img src="Prone_Github_Gif2.gif" width="700">
-![Prone_Github_Gif2] (https://user-images.githubusercontent.com/60804871/128183148-bf985b18-14f4-468d-b0d8-729b279df39c.gif)
-
   Skeletal Mesh의 Root Rotation를 돌릴려면 AnimBP에서 Rotate Root Bone을 이용해서 돌리거나 블랜드에서 직접 Root Rotation을 돌려서 만들면 됩니다.
 
 ## 영상
