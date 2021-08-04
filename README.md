@@ -18,9 +18,15 @@ Actor Rotation은 돌지만 외형은 가만히 있는 것 처럼 보이게 됩�
 플레이어의 Controller Rotation에 따라 Actor Rotation이 움직이면
 TurnDir과 Actor Rotation의 각도(Yaw)의 차이만큼 Skeletal Mesh의 Root Rotation을 반대로 돌리면 됩니다.
 
+<img src="ProneImage4.png" width="700">
+<img src="ProneImage5.png" width="700">
+  Skeletal Mesh의 Root Rotation를 돌릴려면 AnimBP에서 Rotate Root Bone을 이용해서 돌리거나 블랜드에서 직접 Root Rotation을 돌려서 만들면 됩니다.
+
 ## 영상
+
+[![시연 영상](http://img.youtube.com/vi/9oAypAHEWPg/0.jpg)](https://www.youtube.com/watch?v=9oAypAHEWPg) 
 
 [![시연 영상](http://img.youtube.com/vi/nY_vBttBVgw/0.jpg)](https://www.youtube.com/watch?v=nY_vBttBVgw) 
 
 ## 진행상황
-360도 회전 구현 완료, 이동시 중심축 이동, 뒤집혀진 상태(등이 바닥을 향하는)에서 일어서기 구현
+360도 회전 구현 완료, 이동시 중심축 이동, 뒤집혀진 상태(등이 바닥을 향하는)에서 일어서기 구현, 엎드리기 상태시 시점(위, 아래)에 따른 상체 이동
