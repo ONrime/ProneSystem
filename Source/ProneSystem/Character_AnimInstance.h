@@ -51,7 +51,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Aim, Meta = (AllowPrivateAccess = true))
 	FRotBlend ProneRot;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Test, Meta = (AllowPrivateAccess = true))
 	FRotator TurnDir = FRotator::ZeroRotator;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Test, Meta = (AllowPrivateAccess = true))
 	FRotator TurnDirEnd = FRotator::ZeroRotator;
 	bool IsTurn = false;
 	bool IsProneBackMove = false;
