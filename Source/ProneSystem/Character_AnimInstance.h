@@ -58,6 +58,8 @@ private:
 	bool IsTurn = false;
 	bool IsProneBackMove = false;
 
+	void TurnBodyYaw(class AProneSystemCharacter* Player, float& Yaw, float& ProneYaw);
+
 	FRotBlend GetProneRotBlend(FVector PlayerForwardLoc, FRotator PlayerRot);
 
 };

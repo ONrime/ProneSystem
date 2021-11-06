@@ -8,24 +8,29 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Net/UnrealNetwork.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AProneSystemCharacter
 
 AProneSystemCharacter::AProneSystemCharacter()
 {
+	bReplicates = true;
+	//SetReplicates(true);
+	//SetReplicateMovement(true);
 
-	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+	GetCapsuleComponent()->InitCapsuleSize(2.f, 96.0f);
+	RootComponent = GetCapsuleComponent();
 
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
 
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = true;
+	bUseControllerRotationYaw = true; //
 	bUseControllerRotationRoll = false;
 
 	GetCharacterMovement()->bOrientRotationToMovement = false;
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 00.0f, 0.0f);
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
 
@@ -44,7 +49,7 @@ AProneSystemCharacter::AProneSystemCharacter()
 	FollowCamera->bUsePawnControlRotation = false;
 
 	GetMesh()->SetupAttachment(RootComponent);
-	GetMesh()->SetIsReplicated(true);
+	//GetMesh()->SetIsReplicated(true);
 	GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -97.0f));
 	GetMesh()->SetRelativeRotation(FRotator(0.0f, 270.0f, 0.0f));
 	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
@@ -76,6 +81,24 @@ void AProneSystemCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 
 }
 
+bool AProneSystemCharacter::Server_SendIsProne_Validate(bool Send)
+{
+	return true;
+}
+void AProneSystemCharacter::Server_SendIsProne_Implementation(bool Send)
+{
+	IsProne = Send;
+}
+
+bool AProneSystemCharacter::NetMulticast_SendCtrlRot_Validate(FRotator Rot)
+{
+	return true;
+}
+void AProneSystemCharacter::NetMulticast_SendCtrlRot_Implementation(FRotator Rot)
+{
+	CtrlRot = Rot;
+}
+
 
 void AProneSystemCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
 {
@@ -97,11 +120,18 @@ void AProneSystemCharacter::PlayerProne()
 		IsProne = false;
 		CameraBoom->SetRelativeLocation(FVector(0.0f, 60.0f, 80.0f));
 	}
+	if(!HasAuthority()) Server_SendIsProne(IsProne);
 }
 
-void AProneSystemCharacter::TurnAtRate(float Rate)
+void AProneSystemCharacter::TurnAtRate(float Rate) // 어차피 클라이언테에서만 작동
 {
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+
+	if (Rate != 0.0f)
+	{
+		
+	}
+	
 }
 
 void AProneSystemCharacter::LookUpAtRate(float Rate)
@@ -124,6 +154,44 @@ void AProneSystemCharacter::LookUpAtRate(float Rate)
 
 }
 
+void AProneSystemCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+}
+
+void AProneSystemCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (HasAuthority()) { // 플레이어 전체 회전 (서버)
+		if (IsLocallyControlled()) 
+		{
+
+		}
+		else 
+		{
+			
+		}
+		CtrlRot = GetControlRotation();
+		NetMulticast_SendCtrlRot(CtrlRot);
+		//UE_LOG(LogTemp, Warning, TEXT("server_Updates: %s  CtrlRot %f"), *GetName(), CtrlRot.Yaw);
+
+	}
+	else { // (클라이언트)
+		if (IsLocallyControlled()) 
+		{
+			CtrlRot = GetControlRotation();
+		}
+		else 
+		{
+
+		}
+		
+		//UE_LOG(LogTemp, Warning, TEXT("cla_Updates: %s  CtrlRot %f"), *GetName(), CtrlRot.Yaw);
+	}
+}
+
 void AProneSystemCharacter::MoveForward(float Value)
 {
 	if ((Controller != nullptr) && (Value != 0.0f))
@@ -144,4 +212,12 @@ void AProneSystemCharacter::MoveRight(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		AddMovementInput(Direction, Value);
 	}
+}
+
+void AProneSystemCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AProneSystemCharacter, IsProne);
+
 }
