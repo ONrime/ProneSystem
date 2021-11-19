@@ -3,6 +3,7 @@
 
 #include "Character_AnimInstance.h"
 #include "ProneSystemCharacter.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 UCharacter_AnimInstance::UCharacter_AnimInstance()
 {
@@ -25,6 +26,25 @@ void UCharacter_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		
 		PlayerSpeed = Player->GetVelocity().Size(); // ÇÃ·¹ÀÌ¾î ¼Óµµ
 		IsProne = Player->GetIsProne(); // ¾þµå¸®±â »óÅÂ ±¸ºÐ
+
+		if (IsProne && Player->IsProneIK)
+		{
+			// Root
+			FVector RootDir = ProneRootIK(Player, "pelvis", ProneIK_Pelvis_Rot, Player->IsShowCollision);
+
+			// Ã´Ãß
+			FVector SpineDir = ProneMiddleIK(Player, "ProneSpineLoc", ProneIK_Upper_Rot, RootDir, Player->IsShowCollision);
+			// ¹«¸­
+			FVector Calf_Rgiht_Dir = ProneMiddleIK(Player, "ProneCalfRightLoc", ProneIK_Right_Knee_Rot, RootDir, Player->IsShowCollision);
+			FVector Calf_Left_Dir = ProneMiddleIK(Player, "ProneCalfLeftLoc", ProneIK_Left_Knee_Rot, RootDir, Player->IsShowCollision);
+
+			// ¹ß
+			ProneEndIK(Player, "ProneFootRightLoc", ProneIK_Right_Foot_Rot, Calf_Rgiht_Dir, Player->IsShowCollision);
+			ProneEndIK(Player, "ProneFootLeftLoc", ProneIK_Left_Foot_Rot, Calf_Left_Dir, Player->IsShowCollision);
+			// ÆÈ²ÞÄ¡
+			ProneEndIK(Player, "ProneArmRightLoc", ProneIK_Right_Hand_Rot, SpineDir, Player->IsShowCollision);
+			ProneEndIK(Player, "ProneArmLeftLoc", ProneIK_Left_Hand_Rot, SpineDir, Player->IsShowCollision);
+		}
 	}
 	
 }
@@ -96,6 +116,131 @@ void UCharacter_AnimInstance::TurnBodyYaw(AProneSystemCharacter* Player, float& 
 	YawEnd = FMath::ClampAngle(interpToAngle.Yaw, -90.0f, 90.0f);
 	Yaw = -YawEnd;
 
+}
+
+FVector UCharacter_AnimInstance::ProneRootIK(AProneSystemCharacter* Player, FName BoneName, FRotator& Rot, bool IsShow)
+{
+	FVector SocketLoc = Player->GetMesh()->GetSocketLocation(BoneName);
+	FVector StartTracer = SocketLoc + FVector(0.0f, 0.0f, 20.0f);
+	FVector EndTracer = SocketLoc - FVector(0.0f, 0.0f, 60.0f);
+	TArray<AActor*> ActorsToIgnore;
+	FHitResult OutHit;
+
+	bool hitis = false;
+	if (IsShow)
+	{
+		hitis = UKismetSystemLibrary::SphereTraceSingle(this, StartTracer, EndTracer, 3.0f,
+			ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore,
+			EDrawDebugTrace::ForOneFrame, OutHit, true);
+	}
+	else 
+	{
+		hitis = UKismetSystemLibrary::SphereTraceSingle(this, StartTracer, EndTracer, 3.0f,
+			ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore,
+			EDrawDebugTrace::None, OutHit, true);
+	}
+
+	if (hitis)
+	{
+		FVector ImpactNomal = OutHit.ImpactNormal;
+		/*UKismetSystemLibrary::SphereTraceSingle(this, ImpactNomal * 40.0f + SocketLoc, ImpactNomal * -40.0f + SocketLoc, 3.0f,
+			ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore,
+			EDrawDebugTrace::ForOneFrame, OutHit, true);*/
+		//UE_LOG(LogTemp, Warning, TEXT("ImpactNomal: %f, %f, %f"), ImpactNomal.X, ImpactNomal.Y, ImpactNomal.Z);
+		float ProneRotationRoll = FMath::RadiansToDegrees(FMath::Atan2(ImpactNomal.Y, ImpactNomal.Z));
+		float ProneRotationPitch = FMath::RadiansToDegrees(FMath::Atan2(ImpactNomal.X, ImpactNomal.Z) * -1.0f);
+		Rot = FMath::RInterpTo(Rot, FRotator(ProneRotationPitch, 0.0f, ProneRotationRoll), GetWorld()->GetDeltaSeconds(), 15.0f);
+		return ImpactNomal;
+	}
+
+	return FVector::ZeroVector;
+}
+
+FVector UCharacter_AnimInstance::ProneMiddleIK(AProneSystemCharacter* Player, FName BoneName, FRotator& Rot, FVector Dir, bool IsShow)
+{
+	FVector SocketLoc = Player->GetMesh()->GetSocketLocation(BoneName);
+	FVector StartTracer = SocketLoc + Dir * 20.0f;
+	FVector EndTracer = SocketLoc - Dir * 60.0f;
+	TArray<AActor*> ActorsToIgnore;
+	FHitResult OutHit;
+
+	bool hitis = false;
+	if (IsShow)
+	{
+		hitis = UKismetSystemLibrary::SphereTraceSingle(this, StartTracer, EndTracer, 3.0f,
+			ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore,
+			EDrawDebugTrace::ForOneFrame, OutHit, true);
+	}
+	else
+	{
+		hitis = UKismetSystemLibrary::SphereTraceSingle(this, StartTracer, EndTracer, 3.0f,
+			ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore,
+			EDrawDebugTrace::None, OutHit, true);
+	}
+
+	if (hitis)
+	{
+		FVector ImpactNomal = OutHit.ImpactNormal;
+		float ProneRotationRoll = ProneDegrees(ImpactNomal.Y, ImpactNomal.Z, Dir.Y, Dir.Z, 1.0f);
+		float ProneRotationPitch = ProneDegrees(ImpactNomal.X, ImpactNomal.Z, Dir.X, Dir.Z, -1.0f);
+		Rot = FMath::RInterpTo(Rot, FRotator(ProneRotationPitch, 0.0f, ProneRotationRoll), GetWorld()->GetDeltaSeconds(), 15.0f);
+		return ImpactNomal;
+	}
+
+	return FVector::ZeroVector;
+}
+
+
+void UCharacter_AnimInstance::ProneEndIK(AProneSystemCharacter* Player, FName BoneName, FRotator& Rot, FVector Dir, bool IsShow)
+{
+	FVector SocketLoc = Player->GetMesh()->GetSocketLocation(BoneName);
+	FVector StartTracer = SocketLoc + Dir * 20.0f;
+	FVector EndTracer = SocketLoc - Dir * 60.0f;
+
+	FRotator Test = FRotator(0.0f, 0.0f, 5.0f);
+
+	TArray<AActor*> ActorsToIgnore;
+	FHitResult OutHit;
+
+	bool hitis = false;
+	if (IsShow)
+	{
+		hitis = UKismetSystemLibrary::SphereTraceSingle(this, StartTracer, EndTracer, 3.0f,
+			ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore,
+			EDrawDebugTrace::ForOneFrame, OutHit, true);
+	}
+	else
+	{
+		hitis = UKismetSystemLibrary::SphereTraceSingle(this, StartTracer, EndTracer, 3.0f,
+			ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore,
+			EDrawDebugTrace::None, OutHit, true);
+	}
+
+	if (hitis)
+	{
+		FVector ImpactNomal = OutHit.ImpactNormal;
+		/*UKismetSystemLibrary::SphereTraceSingle(this, ImpactNomal * 60.0f + SocketLoc, ImpactNomal * -60.0f + SocketLoc, 3.0f,
+			ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore,
+			EDrawDebugTrace::ForOneFrame, OutHit, true);*/
+		float ProneRotationRoll = ProneDegrees(ImpactNomal.Y, ImpactNomal.Z, Dir.Y, Dir.Z, 1.0f);
+		float ProneRotationPitch = ProneDegrees(ImpactNomal.X, ImpactNomal.Z, Dir.X, Dir.Z, -1.0f);
+		Rot = FMath::RInterpTo(Rot, FRotator(ProneRotationPitch, 0.0f, ProneRotationRoll), GetWorld()->GetDeltaSeconds(), 15.0f);
+	}
+}
+
+float UCharacter_AnimInstance::ProneDegrees(float ImpactNomalXY, float ImpactNomalZ, float DirXY, float DirZ, float XY)
+{
+	float Degrees = 0.0f;
+	if (DirZ > ImpactNomalZ)
+	{
+		Degrees = FMath::RadiansToDegrees(FMath::Atan2(ImpactNomalXY, DirZ) * XY);
+	}
+	else if (DirZ < ImpactNomalZ)
+	{
+		Degrees = FMath::RadiansToDegrees(FMath::Atan2(DirXY, ImpactNomalZ) * -1.0f * XY);
+	}
+
+	return Degrees;
 }
 
 FRotBlend UCharacter_AnimInstance::GetProneRotBlend(FVector PlayerForwardLoc, FRotator PlayerRot)

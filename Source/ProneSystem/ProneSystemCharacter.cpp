@@ -9,6 +9,9 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Character_AnimInstance.h"
+#include "ProneUI_UserWidget.h"
+#include "Blueprint/UserWidget.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AProneSystemCharacter
@@ -59,6 +62,8 @@ AProneSystemCharacter::AProneSystemCharacter()
 	static ConstructorHelpers::FClassFinder<UAnimInstance>FULLBODY_ANIMBP(TEXT("AnimBlueprint'/Game/Mannequin/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C'"));
 	if (FULLBODY_ANIMBP.Succeeded()) { GetMesh()->SetAnimInstanceClass(FULLBODY_ANIMBP.Class); }
 
+	static ConstructorHelpers::FClassFinder<UProneUI_UserWidget>PRONEUI_WIDGET(TEXT("WidgetBlueprint'/Game/PronePlayer/ProneHUD.ProneHUD_C'"));
+	if (PRONEUI_WIDGET.Succeeded()) ProneUI_Class = PRONEUI_WIDGET.Class;
 }
 
 void AProneSystemCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -67,6 +72,9 @@ void AProneSystemCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 	PlayerInputComponent->BindAction("Prone", IE_Released, this, &AProneSystemCharacter::PlayerProne);
+	PlayerInputComponent->BindAction("CameraChange", IE_Released, this, &AProneSystemCharacter::PlayerCameraChange);
+	PlayerInputComponent->BindAction("ShowCollision", IE_Released, this, &AProneSystemCharacter::PlayerShowCollision);
+	PlayerInputComponent->BindAction("DisableProneIK", IE_Released, this, &AProneSystemCharacter::PlayerDisableProneIK);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AProneSystemCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AProneSystemCharacter::MoveRight);
@@ -114,13 +122,60 @@ void AProneSystemCharacter::PlayerProne()
 {
 	if (!IsProne) {
 		IsProne = true;
+		GetCharacterMovement()->MaxWalkSpeed = 300.0f;
 		CameraBoom->SetRelativeLocation(FVector(0.0f, 60.0f, 0.0f));
 	}
 	else {
 		IsProne = false;
+		GetCharacterMovement()->MaxWalkSpeed = 600.0f;
 		CameraBoom->SetRelativeLocation(FVector(0.0f, 60.0f, 80.0f));
 	}
 	if(!HasAuthority()) Server_SendIsProne(IsProne);
+}
+
+void AProneSystemCharacter::PlayerCameraChange()
+{
+	if (IsCameraChange)
+	{
+		IsCameraChange = false; 
+		CameraBoom->bInheritPitch = true;
+		CameraBoom->bInheritRoll = false;
+		CameraBoom->bInheritYaw = true;
+		CameraBoom->TargetArmLength = 200.0f;
+	}
+	else {
+		IsCameraChange = true;
+		CameraBoom->bInheritPitch = false;
+		CameraBoom->bInheritRoll = false;
+		CameraBoom->bInheritYaw = false;
+		CameraBoom->TargetArmLength = 350.0f;
+	}
+}
+
+void AProneSystemCharacter::PlayerShowCollision()
+{
+	if (IsShowCollision)
+	{
+		IsShowCollision = false;
+	}
+	else 
+	{
+		IsShowCollision = true;
+	}
+}
+
+void AProneSystemCharacter::PlayerDisableProneIK()
+{
+	if (IsProneIK)
+	{
+		IsProneIK = false;
+		ProneUI_WB->ProneStateText = "Prone IK OFF";
+	}
+	else 
+	{
+		IsProneIK = true;
+		ProneUI_WB->ProneStateText = "Prone IK ON";
+	}
 }
 
 void AProneSystemCharacter::TurnAtRate(float Rate) // 어차피 클라이언테에서만 작동
@@ -129,7 +184,7 @@ void AProneSystemCharacter::TurnAtRate(float Rate) // 어차피 클라이언테에서만 작
 
 	if (Rate != 0.0f)
 	{
-		
+
 	}
 	
 }
@@ -158,6 +213,12 @@ void AProneSystemCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	AnimIns = Cast<UCharacter_AnimInstance>(GetMesh()->GetAnimInstance());
+
+	ProneUI_WB = CreateWidget<UProneUI_UserWidget>(GetWorld(), ProneUI_Class);
+	if (ProneUI_WB) {
+		ProneUI_WB->AddToViewport();
+	}
 }
 
 void AProneSystemCharacter::Tick(float DeltaTime)
@@ -190,6 +251,12 @@ void AProneSystemCharacter::Tick(float DeltaTime)
 		
 		//UE_LOG(LogTemp, Warning, TEXT("cla_Updates: %s  CtrlRot %f"), *GetName(), CtrlRot.Yaw);
 	}
+}
+
+void AProneSystemCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
 }
 
 void AProneSystemCharacter::MoveForward(float Value)

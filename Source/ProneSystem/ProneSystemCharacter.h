@@ -22,12 +22,19 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
+	UPROPERTY()
+	class UProneUI_UserWidget* ProneUI_WB = nullptr;
+
 	bool GetIsProne() { return IsProne; }
 	FRotator GetCtrlRot() { return CtrlRot; }
+
+	bool IsShowCollision = false;
+	bool IsProneIK = true;
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void PostInitializeComponents() override;
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
@@ -37,13 +44,23 @@ protected:
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 	
 	void PlayerProne();
+	void PlayerCameraChange();
+	void PlayerShowCollision();
+	void PlayerDisableProneIK();
 
 	UPROPERTY(Replicated)
 	bool IsProne = false;
 	bool IsProneBack = false;
 	bool IsTurn = false;
+	bool IsCameraChange = false;
 	//UPROPERTY(ReplicatedUsing = OnRep_CtrlRotChange)
 	FRotator CtrlRot = FRotator::ZeroRotator;
+
+	UPROPERTY()
+	class UCharacter_AnimInstance* AnimIns = nullptr;
+
+
+	TSubclassOf<class UProneUI_UserWidget> ProneUI_Class;
 
 protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
