@@ -9,5 +9,8 @@ public class ProneSystem : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "OnlineSubsystemUtils", "Steamworks", "Networking", "UMG" });
+
+		PrivateIncludePaths.Add("ProneSystem/");
+		PublicIncludePaths.Add("ProneSystem/");
 	}
 }

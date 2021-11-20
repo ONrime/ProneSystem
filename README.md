@@ -7,6 +7,10 @@ Developed with Unreal Engine 4
  좀 더 현실적인 엎드리기 시스템 구현을 목적으로 만든 저장소 입니다.
 목표는 맥스페인과 메탈기어 솔리드와 같이 엎드린 상태에서 360도 회전을 할 때 자연스러운 모습을 보이게 만드는 것입니다.
 
+## 진행상황
+360도 회전 구현 완료, 이동시 중심축 이동, 뒤집혀진 상태(등이 바닥을 향하는)에서 일어서기 구현, 엎드리기 상태시 시점(위, 아래)에 따른 상체 이동
+지형 지물에 따라 몸이 반응하는 Prone IK 구현 완료
+
 ## 구현방법(기본 이론)
 <img src="ProneImage2.png" width="500">
 
@@ -29,5 +33,3 @@ TurnDir과 Actor Rotation의 각도(Yaw)의 차이만큼 Skeletal Mesh의 Root R
 
 [![시연 영상](http://img.youtube.com/vi/nY_vBttBVgw/0.jpg)](https://www.youtube.com/watch?v=nY_vBttBVgw) 
 
-## 진행상황
-360도 회전 구현 완료, 이동시 중심축 이동, 뒤집혀진 상태(등이 바닥을 향하는)에서 일어서기 구현, 엎드리기 상태시 시점(위, 아래)에 따른 상체 이동
